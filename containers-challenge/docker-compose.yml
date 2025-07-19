@@ -1,0 +1,119 @@
+
+#    BASIC docker-compose.yml    #
+
+# services:
+#   web:
+#     container_name: challenge-flask-app
+#     build:
+#       context: .
+#       dockerfile: Dockerfile-flask-app
+#     ports:
+#       - "5000:5000"
+#     depends_on:
+#       - redis
+#     env_file:
+#       - .env
+#     networks:
+#       - app-net
+
+#   redis:
+#     container_name: redis-db
+#     image: redis:7.2
+#     volumes:
+#       - redis_data:/data
+#     networks:
+#       - app-net
+
+# networks:
+#   app-net:
+#     driver: bridge
+
+# volumes:
+#   redis_data:
+
+
+
+
+#    SCALING FLASK SERVICE + LOAD BALANCING docker-compose.yml (non-Swarm version)    #
+
+# services:
+#   web:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile-flask-app
+#     depends_on:
+#       - redis
+#     env_file:
+#       - .env
+#     networks:
+#       - app-net
+
+#   redis:
+#     container_name: redis-db
+#     image: redis:7.2
+#     volumes:
+#       - redis_data:/data
+#     networks:
+#       - app-net
+
+#   nginx:
+#     image: nginx:alpine
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#     ports:
+#       - "5000:80"
+#     depends_on:
+#       - web
+#     networks:
+#       - app-net
+
+# networks:
+#   app-net:
+#     driver: bridge
+
+# volumes:
+#   redis_data:
+
+
+
+#    SCALING FLASK SERVICE + LOAD BALANCING docker-compose.yml    #
+
+services:
+  web:
+    image: flask-app:latest
+    ports: []
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      - app-net
+    deploy:
+      mode: replicated
+      replicas: 3
+
+  redis:
+    container_name: redis-db
+    image: redis:7.2
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-net
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "5000:80"
+    depends_on:
+      - web
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: overlay
+
+volumes:
+  redis_data:
